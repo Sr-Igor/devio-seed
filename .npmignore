@@ -1,0 +1,26 @@
+# Ignorar arquivos de configuração e metadados locais
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Ignorar dependências locais
+node_modules/
+
+# Ignorar diretórios de build locais
+src/
+tests/
+coverage/
+build/
+*.tsbuildinfo
+
+# Ignorar arquivos específicos do versionamento
+.git/
+.gitignore
+.npmignore
+
+# Ignorar arquivos de configuração desnecessários
+tsconfig.json
+jest.config.js
+
+# Inclua apenas a saída final (dist/) no npm

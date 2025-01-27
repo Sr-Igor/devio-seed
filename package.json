@@ -1,0 +1,26 @@
+{
+  "name": "devio-seed",
+  "version": "0.0.4",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "version-patch": "npm version patch",
+    "prepublishOnly": "npm run build",
+    "publish-auto": "npm run version-patch && npm publish"
+  },
+  "peerDependencies": {
+    "date-fns": "^2.0.0",
+    "express": "^4.18.0",
+    "zod": "^3.0.0"
+  },
+  "keywords": [],
+  "author": "Igor Rezende",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@prisma/internals": "^6.2.1",
+    "chalk": "^5.4.1"
+  },
+  "dependencies": {}
+}
