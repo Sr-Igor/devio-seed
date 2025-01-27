@@ -1,6 +1,6 @@
 {
   "name": "devio-seed",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -18,9 +18,8 @@
   "author": "Igor Rezende",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
+  "dependencies": {
     "@prisma/internals": "^6.2.1",
     "chalk": "^5.4.1"
-  },
-  "dependencies": {}
+  }
 }
