@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const chalk = require("chalk");
 
 const { getDMMF } = require("@prisma/internals");
 const { PrismaClient } = require("@prisma/client");
@@ -96,9 +95,7 @@ function topologicalSort(graph) {
 
   if (sorted.length < Object.keys(graph).length) {
     console.warn(
-      chalk.yellow(
-        "⚠️ Possível ciclo de dependências. A ordenação pode estar incompleta."
-      )
+      "⚠️ Possível ciclo de dependências. A ordenação pode estar incompleta."
     );
 
     const remaining = Object.keys(inDegree).filter((m) => inDegree[m] > 0);
@@ -156,9 +153,7 @@ async function tryCreateOneRecord(modelDataMap, modelName) {
     } else {
       if (anyFKrequired) {
         // console.warn(
-        //   chalk.yellow(
         //     `⚠️  O campo '${field.name}' em '${modelName}' é obrigatório, mas não há registro em '${type}' ainda.`
-        //   )
         // );
         data[field.name] = undefined;
       } else {
@@ -171,18 +166,14 @@ async function tryCreateOneRecord(modelDataMap, modelName) {
     const created = await prisma[modelName].create({ data });
     createdRecords.push(created);
     console.log(
-      chalk.green(
-        `  ✅ Registro criado em ${modelName} (ID: ${
-          created.id || Object.values(created)[0]
-        })`
-      )
+      `  ✅ Registro criado em ${modelName} (ID: ${
+        created.id || Object.values(created)[0]
+      })`
     );
     return true;
   } catch (err) {
     console.warn(
-      chalk.blue(
-        `  🛠️ Falha ao criar ${modelName}. Aguardar proxima passada...`
-      )
+      `  🛠️ Falha ao criar ${modelName}. Aguardar proxima passada...`
     );
     return false;
   }
@@ -205,7 +196,7 @@ async function multiPassCreate(dmmf, maxPasses = 5) {
 
   let pass = 1;
   while (pass <= maxPasses) {
-    console.log(chalk.blue(`\n=== Iniciando pass #${pass} ===`));
+    console.log(`\n=== Iniciando pass #${pass} ===`);
     let createdSomethingThisPass = false;
 
     for (const modelName of sortedModelNames) {
@@ -229,15 +220,15 @@ async function multiPassCreate(dmmf, maxPasses = 5) {
 
 export const generateSeedData = async (seedPath) => {
   try {
-    console.log(chalk.blue("Lendo schema.prisma..."));
+    console.log("Lendo schema.prisma...");
     const dmmfData = await loadDMMF(seedPath);
 
-    console.log(chalk.blue("Iniciando criação de registros..."));
+    console.log("Iniciando criação de registros...");
     await multiPassCreate(dmmfData, 5);
 
-    console.log(chalk.green("\n✅ Seed finalizado com sucesso!"));
+    console.log("\n✅ Seed finalizado com sucesso!");
   } catch (error) {
-    console.error(chalk.red("❌ Erro durante a geração de seed:", error));
+    console.error("❌ Erro durante a geração de seed:", error);
     throw error;
   } finally {
     await prisma.$disconnect();

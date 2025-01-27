@@ -1,6 +1,6 @@
 {
   "name": "devio-seed",
-  "version": "0.0.5",
+  "version": "0.0.13",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -19,7 +19,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/internals": "^6.2.1",
-    "chalk": "^5.4.1"
+    "@prisma/internals": "^6.2.1"
   }
 }
