@@ -210,6 +210,7 @@ async function multiPassCreate(dmmf, maxPasses = 5) {
     }
 
     if (!createdSomethingThisPass) {
+      console.log("⚠️ Sem mais registros para criar...");
       break;
     }
     pass++;
