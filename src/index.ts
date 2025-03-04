@@ -206,63 +206,48 @@ function isSelfRelationModel(model) {
 }
 
 /**
- * Cria um registro adicional para um modelo que possui self-relation.
- * Utiliza a mesma lógica de preenchimento dos dados (incluindo os relacionamentos obrigatórios,
- * como o "level"), e sobrescreve o campo self-relation para conectar com o primeiro registro.
+ * Atualiza a self-relation para **todos** os registros do modelo.
+ * Para cada registro, o campo de self-relation é atualizado para conectar com o primeiro registro criado.
  */
-async function createAdditionalSelfRelationRecord(modelDataMap, modelName) {
+async function updateSelfRelationForAllRecords(modelDataMap, modelName) {
   const { model, createdRecords } = modelDataMap[modelName];
-
-  // Garante que haja um primeiro registro
-  if (createdRecords.length === 0) {
-    const success = await tryCreateOneRecord(modelDataMap, modelName);
-    if (!success) return;
-  }
+  if (createdRecords.length === 0) return;
   const firstRecord = createdRecords[0];
 
-  // Monta os dados completos para criação do registro
-  const data = buildCreationData(modelDataMap, modelName);
-
-  // Sobrescreve o campo de self-relation para conectar com o primeiro registro
   const selfRelationField = model.fields.find(
     (f) => f.kind === "object" && f.type === modelName && !f.isList
   );
-  if (selfRelationField) {
-    data[selfRelationField.name] = { connect: {} };
-    if (selfRelationField.relationToFields?.length === 1) {
-      const foreignKey = selfRelationField.relationToFields[0];
-      data[selfRelationField.name].connect[foreignKey] =
-        firstRecord[foreignKey];
-    } else {
-      selfRelationField.relationToFields.forEach((rk) => {
-        data[selfRelationField.name].connect[rk] = firstRecord[rk];
+  if (!selfRelationField) return;
+
+  for (const record of createdRecords) {
+    try {
+      const updateData = {};
+      if (selfRelationField.relationToFields?.length === 1) {
+        const foreignKey = selfRelationField.relationToFields[0];
+        updateData[selfRelationField.name] = {
+          connect: { [foreignKey]: firstRecord[foreignKey] },
+        };
+      } else {
+        updateData[selfRelationField.name] = {
+          connect: selfRelationField.relationToFields.reduce((acc, rk) => {
+            acc[rk] = firstRecord[rk];
+            return acc;
+          }, {}),
+        };
+      }
+      const updated = await prisma[modelName].update({
+        where: { id: record.id },
+        data: updateData,
       });
+      console.log(
+        `  ✅ Self-relation atualizada para ${modelName} (ID: ${record.id})`
+      );
+    } catch (err) {
+      console.error(
+        `  🛠️ Falha ao atualizar self-relation para ${modelName} (ID: ${record.id})`,
+        err.message
+      );
     }
-  }
-
-  try {
-    let secondRecord = await prisma[modelName].create({ data });
-    // Atualiza o createdAt do segundo registro para ser 1 segundo anterior ao primeiro
-    const firstCreatedAt =
-      firstRecord.createdAt instanceof Date
-        ? firstRecord.createdAt
-        : new Date(firstRecord.createdAt);
-    const newCreatedAt = new Date(firstCreatedAt.getTime() - 1000);
-
-    secondRecord = await prisma[modelName].update({
-      where: { id: secondRecord.id },
-      data: { createdAt: newCreatedAt },
-    });
-
-    createdRecords.push(secondRecord);
-    console.log(
-      `  ✅ Registro adicional criado em ${modelName} (ID: ${secondRecord.id}) com self-relation e createdAt ajustado`
-    );
-  } catch (err) {
-    console.error(
-      `  🛠️ Falha ao criar registro adicional para self-relation em ${modelName}`,
-      err.message
-    );
   }
 }
 
@@ -318,16 +303,15 @@ export const generateSeedData = async (seedPath) => {
     console.log("Iniciando criação de registros...");
     const modelDataMap = await multiPassCreate(dmmfData, 5);
 
-    // Para modelos com self-relation, se houver somente 1 registro, cria o registro adicional
+    // Para modelos com self-relation, atualiza a coluna de self-relation para todos os registros,
+    // mesmo que isso gere redundância.
     for (const modelName in modelDataMap) {
       const model = modelDataMap[modelName].model;
       if (isSelfRelationModel(model)) {
-        if (modelDataMap[modelName].createdRecords.length < 2) {
-          console.log(
-            `\n=== Criando registro adicional para self-relation em ${modelName} ===`
-          );
-          await createAdditionalSelfRelationRecord(modelDataMap, modelName);
-        }
+        console.log(
+          `\n=== Atualizando self-relation para todos os registros em ${modelName} ===`
+        );
+        await updateSelfRelationForAllRecords(modelDataMap, modelName);
       }
     }
 
